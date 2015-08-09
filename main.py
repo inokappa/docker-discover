@@ -35,7 +35,8 @@ def get_services():
 
     host, port = get_etcd_addr()
     client = etcd.Client(host=host, port=int(port))
-    backends = client.read('/backends', recursive = True)
+    #backends = client.read('/backends', recursive = True)
+    backends = client.read('/services/centos', recursive = True)
     services = {}
 
     for i in backends.children:
