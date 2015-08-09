@@ -33,9 +33,13 @@ def get_etcd_addr():
 
 def get_services():
 
+    if "EXPOSE_HOST_PORT" not in os.environ:
+       print "EXPOSE_HOST_PORT not set"
+       sys.exit(1)
+    expose_host_port = os.environ["EXPOSE_HOST_PORT"]
+
     host, port = get_etcd_addr()
     client = etcd.Client(host=host, port=int(port))
-    #backends = client.read('/backends', recursive = True)
     backends = client.read('/services/centos', recursive = True)
     services = {}
 
@@ -46,10 +50,12 @@ def get_services():
 
         ignore, service, container = i.key[1:].split("/")
         endpoints = services.setdefault(service, dict(port="", backends=[]))
-        if container == "port":
-            endpoints["port"] = i.value
-            continue
+        if "EXPOSE_HOST_PORT" not in os.environ:
+            print "EXPOSE_HOST_PORT not set"
+            sys.exit(1)
+        endpoints["port"] = expose_host_port
         endpoints["backends"].append(dict(name=container, addr=i.value))
+
     return services
 
 def generate_config(services):
